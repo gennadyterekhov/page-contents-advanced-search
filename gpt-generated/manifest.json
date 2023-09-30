@@ -1,0 +1,18 @@
+{
+    "manifest_version": 3,
+    "name": "page contents advanced search",
+    "description": "page contents advanced search",
+    "version": "1.0",
+    "action": {
+        "default_popup": "index.html",
+        "default_icon": "icon.svg.png",
+        "default_title": "page contents advanced search"
+    },
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "background": {
+        "service_worker": "service-worker.js"
+    }
+}
