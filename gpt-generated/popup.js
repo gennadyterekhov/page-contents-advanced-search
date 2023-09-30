@@ -7,10 +7,16 @@ const searchButton = document.getElementById('search-button');
 const resultsDiv = document.getElementById('search-results');
 let linksText = '';
 let pageContentsAsText = '';
-let pageContentsAsDocument;
+let pageContentsAsDocument = null;
 let linksExist = true;
 
 let isLoading = false;
+
+
+// Назначаем обработчики событий
+caseInsensitiveCheckbox.addEventListener('change', toggleCaseInsensitive);
+regexCheckbox.addEventListener('change', toggleRegex);
+searchButton.addEventListener('click', handleSearchButtonClick);
 
 // Функции изменения состояния чекбоксов
 function toggleCaseInsensitive() {
@@ -121,13 +127,15 @@ function getHtmlResults(indices, originalText) {
 }
 
 // Обработчик нажатия на кнопку поиска
-function handleSearchButtonClick() {
+async function handleSearchButtonClick() {
+    console.log('handleSearchButtonClick');
+
     const caseInsensitive = caseInsensitiveCheckbox.checked;
     const regex = regexCheckbox.checked;
     const acrossLinks = acrossLinksCheckbox.checked;
     const searchText = searchInput.value;
     let indices = [];
-
+    let pageText;
     if (acrossLinks) {
         const linksText = getLinksText();
         if (!linksText) {
@@ -136,7 +144,9 @@ function handleSearchButtonClick() {
         }
         indices = searchCaseInsensitive(linksText, searchText);
     } else {
-        const pageText = getPageContentsAsText();
+        pageText = await getPageContentsAsText();
+        console.log('pageText', pageText);
+
         if (!pageText) {
             resultsDiv.innerHTML = '';
             return;
@@ -154,46 +164,55 @@ function handleSearchButtonClick() {
     showResults(indices, pageText);
 }
 
-// Назначаем обработчики событий
-caseInsensitiveCheckbox.addEventListener('change', toggleCaseInsensitive);
-regexCheckbox.addEventListener('change', toggleRegex);
-searchButton.addEventListener('click', handleSearchButtonClick);
-
 
 // below is human generated code
 
 async function getPageContentsAsText() {
+    console.log('getPageContentsAsText');
+
     if (pageContentsAsText !== '') {
         return pageContentsAsText;
     }
     const doc = await getPageContentsAsDocument();
-    pageContentsAsText = doc.innerHTML;
+    // pageContentsAsText = doc.body.innerText;
+    //document.all[0].outerHTML
+    pageContentsAsText = doc.all[0].outerHTML;
+    console.log('pageContentsAsText', pageContentsAsText);
+
     return pageContentsAsText;
 }
 
 async function getPageContentsAsDocument() {
+    console.log('getPageContentsAsDocument');
+
     isLoading = true;
-    if (pageContentsAsDocument !== null || pageContentsAsDocument !== undefined) {
+    if (pageContentsAsDocument !== null) {
         return pageContentsAsDocument;
     }
     const response = await chrome.runtime.sendMessage({ action: "getActiveTabContent" });
     console.log(response);
-    pageContentsAsDocument = response;
+    pageContentsAsDocument = response.content;
+    console.log('pageContentsAsDocument', pageContentsAsDocument);
+
     isLoading = false;
     return response;
 }
 
-
-
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
+        console.log('onMessage in popup.js', request);
+
         console.log(sender.tab ?
             "from a content script:" + sender.tab.url :
             "from the extension");
-        if (request.action === "updatePopupContent") {
+        if (request.action === "sendUpdatePopupContentToPopup") {
+            console.log('getting sendUpdatePopupContentToPopup in popup.js');
+
             console.log('getting page in popup.js', request.content);
             pageContentsAsDocument = request.content
             sendResponse({ status: "ok" });
+            return;
         }
+        sendResponse({ status: "ko", content: 'unknown action' });
     }
 );
