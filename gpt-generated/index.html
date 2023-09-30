@@ -4,13 +4,21 @@
 <head>
   <meta charset="UTF-8">
   <title>Search App</title>
+  <style>
+    body {
+      width: 400px;
+    }
+  </style>
 </head>
 
 <body>
-  <input type="checkbox" id="case-insensitive-checkbox"> <label for="case-insensitive">Case insensitive</label><br>
-  <input type="checkbox" id="treat-as-regex-checkbox"> <label for="treat-as-regex">Treat as a regex</label><br>
-  <input type="checkbox" id="across-links-only-checkbox"> <label for="across-links-only">Across links only</label><br>
+  <span>
 
+    <input type="checkbox" id="case-insensitive-checkbox"> <label for="case-insensitive-checkbox">Case insensitive</label>
+    <input type="checkbox" id="treat-as-regex-checkbox"> <label for="treat-as-regex-checkbox">Treat as a regex</label>
+    <input type="checkbox" id="across-links-only-checkbox"> <label for="across-links-only-checkbox">Across links only</label>
+  </span>
+  <br>
   <input type="text" placeholder="Query" id="search-query-input"><br>
   <button id="search-button">Search</button><br>
 
