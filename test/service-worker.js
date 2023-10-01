@@ -1,16 +1,7 @@
 async function sendUpdatePopupContentToPopup(content) {
-    console.log('sendUpdatePopupContentToPopup service-worker.js', content);// success
-
-    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-    console.log('tab', tab);
-
+    console.log('sendUpdatePopupContentToPopup service-worker.js', content);
     id = 'jkjmcafbjdffeihegnhpkbfafgpkikia'
-    // const response = await chrome.tabs.sendMessage(tab.id, { action: "sendUpdatePopupContentToPopup", content: content });
-    // const responseRuntime = await chrome.runtime.sendMessage( { action: "sendUpdatePopupContentToPopup", content: content });
     const responseRuntimeWithId = await chrome.runtime.sendMessage(id, { action: "sendUpdatePopupContentToPopup", content: content });
-
-    // console.log('response', response);
-    // console.log('responseRuntime', responseRuntime);
     console.log('responseRuntimeWithId', responseRuntimeWithId);
     return responseRuntimeWithId;
 }
@@ -20,7 +11,6 @@ async function sendGetActiveTabDocumentToContentScript() {
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     console.log('tab', tab);
     if (tab) {
-
         const response = await chrome.tabs.sendMessage(tab.id, { action: "getActiveTabDocument" });
         console.log('response from content script', response);
         return response;
@@ -32,9 +22,6 @@ async function sendGetActiveTabDocumentToContentScript() {
 
 async function getActiveTabDocumentListener(request, sender, sendResponse) {
     console.log('getActiveTabDocumentListener service-worker.js');
-
-    console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
-
     const resultFromContentScript = await sendGetActiveTabDocumentToContentScript();
     console.log('resultFromContentScript ', resultFromContentScript);
     if (resultFromContentScript) {
