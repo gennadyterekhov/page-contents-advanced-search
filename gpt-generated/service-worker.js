@@ -1,6 +1,6 @@
 async function sendUpdatePopupContentToPopup(content) {
     console.log('sendUpdatePopupContentToPopup service-worker.js', content);
-    id = 'jkjmcafbjdffeihegnhpkbfafgpkikia'
+    id = 'gbbaglndlallggdicmccpdpbdmhmhdpi'
     const responseRuntimeWithId = await chrome.runtime.sendMessage(id, { action: "sendUpdatePopupContentToPopup", content: content });
     console.log('responseRuntimeWithId', responseRuntimeWithId);
     return responseRuntimeWithId;
