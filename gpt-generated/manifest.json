@@ -24,5 +24,8 @@
     ],
     "background": {
         "service_worker": "service-worker.js"
+    },
+    "externally_connectable": {
+        "matches": ["*://*/*"]
     }
 }
