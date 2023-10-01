@@ -1,81 +1,27 @@
-// Глобальные переменные для элементов из HTML
-const caseInsensitiveCheckbox = document.getElementById('case-insensitive-checkbox');
-const regexCheckbox = document.getElementById('treat-as-regex-checkbox');
-const acrossLinksCheckbox = document.getElementById('across-links-only-checkbox');
+const messageDiv = document.getElementById('message');
+
 const searchInput = document.getElementById('search-query-input');
 const searchButton = document.getElementById('search-button');
 const resultsDiv = document.getElementById('search-results');
-let linksText = '';
-let pageContentsAsText = '';
 let pageContentsAsDocument = null;
-let linksExist = true;
-
-let isLoading = false;
 
 
-// Назначаем обработчики событий
-caseInsensitiveCheckbox.addEventListener('change', toggleCaseInsensitive);
-regexCheckbox.addEventListener('change', toggleRegex);
+console.log = function (arg){
+    resultsDiv.innerHTML = String(arg)
+}
+
+
 searchButton.addEventListener('click', handleSearchButtonClick);
 
-// Функции изменения состояния чекбоксов
-function toggleCaseInsensitive() {
-    caseInsensitiveCheckbox.checked = !caseInsensitiveCheckbox.checked;
-    if (caseInsensitiveCheckbox.checked) {
-        regexCheckbox.checked = false;
-    }
+async function handleSearchButtonClick() {
+    console.log('handleSearchButtonClick');
+    let pageText;
+
+    pageText = await getPageContentsAsDocument();
 }
 
-function toggleRegex() {
-    regexCheckbox.checked = !regexCheckbox.checked;
-    if (regexCheckbox.checked) {
-        caseInsensitiveCheckbox.checked = false;
-    }
-}
 
-function toggleAcrossLinks() {
-    acrossLinksCheckbox.checked = !acrossLinksCheckbox.checked;
-}
 
-// Функция получения массива всех ссылок на текущей странице
-function getAllLinks() {
-    const links = document.getElementsByTagName('a');
-    const linkArray = Array.from(links);
-    return linkArray.map(link => link.href);
-}
-
-// Функция получения текста всех ссылок
-function getLinksText() {
-    if (linksText) {
-        return linksText;
-    }
-    if (!linksExist) {
-        return '';
-    }
-
-    const links = getAllLinks();
-    if (links.length > 0) {
-        linksExist = true;
-    } else {
-        linksExist = false;
-        return '';
-    }
-
-    linksText = links.join('\n');
-    return linksText;
-}
-
-// Функция поиска с учетом регистра
-function searchCaseSensitive(haystack, needle) {
-    const indices = [];
-    let index = -1;
-
-    while ((index = haystack.indexOf(needle, index + 1)) !== -1) {
-        indices.push(index);
-    }
-
-    return indices;
-}
 
 // Функция поиска без учета регистра
 function searchCaseInsensitive(haystack, needle) {
@@ -126,65 +72,30 @@ function getHtmlResults(indices, originalText) {
     return resultHtml;
 }
 
-// Обработчик нажатия на кнопку поиска
-async function handleSearchButtonClick() {
-    console.log('handleSearchButtonClick');
 
-    const caseInsensitive = caseInsensitiveCheckbox.checked;
-    const regex = regexCheckbox.checked;
-    const acrossLinks = acrossLinksCheckbox.checked;
+
+function continueSearch() {
     const searchText = searchInput.value;
-    let indices = [];
-    let pageText;
-    if (acrossLinks) {
-        const linksText = getLinksText();
-        if (!linksText) {
-            resultsDiv.innerHTML = '';
-            return;
-        }
-        indices = searchCaseInsensitive(linksText, searchText);
-    } else {
-        pageText = await getPageContentsAsText();
-        console.log('pageText', pageText);
 
-        if (!pageText) {
-            resultsDiv.innerHTML = '';
-            return;
-        }
-
-        if (regex) {
-            indices = searchRegex(pageText, searchText);
-        } else if (caseInsensitive) {
-            indices = searchCaseInsensitive(pageText, searchText);
-        } else {
-            indices = searchCaseSensitive(pageText, searchText);
-        }
+    if (!pageContentsAsDocument) {
+        resultsDiv.innerHTML = ' что-то не так, не нашел текст на странице';
+        return;
     }
+    indices = searchCaseInsensitive(pageContentsAsDocument, searchText);
 
-    showResults(indices, pageText);
+    showResults(indices, pageContentsAsDocument);
 }
 
+function sendUpdatePopupContentToPopupListener(request, sender, sendResponse) {
+    console.log('sendUpdatePopupContentToPopupListener popup.js', request);
 
-// below is human generated code
+    pageContentsAsDocument = request.content;
+    messageDiv.innerHTML = 'success';
+    sendResponse({ status: "ok", content: 'got doc text' });
 
-async function getPageContentsAsText() {
-    console.log('getPageContentsAsText');
 
-    if (pageContentsAsText !== '') {
-        return pageContentsAsText;
-    }
-    const doc = await getPageContentsAsDocument();
-    // pageContentsAsText = doc.body.innerText;
-    //document.all[0].outerHTML
-    if (!doc) {
-        return '';
-    }
-    console.log('doc', doc);
-    return doc;
-    pageContentsAsText = doc.all[0].outerHTML;
-    console.log('pageContentsAsText', pageContentsAsText);
 
-    return pageContentsAsText;
+    continueSearch();
 }
 
 async function getPageContentsAsDocument() {
@@ -206,33 +117,51 @@ async function getPageContentsAsDocument() {
     return response;
 }
 
-chrome.runtime.onMessage.addListener(
-    function (request, sender, sendResponse) {
-        console.log('onMessage in popup.js', request);
 
-        console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
+function getActiveTabDocumentListener(request, sender, sendResponse) {
+    console.log('onMessage in popup.js', request);
 
+    console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
 
+    if (request.action === "sendUpdatePopupContentToPopup") {
+        console.log('getting sendUpdatePopupContentToPopup in popup.js');
 
-
-        if (request.action === "sendUpdatePopupContentToPopup") {
-            console.log('getting sendUpdatePopupContentToPopup in popup.js');
-
-            console.log('getting page in popup.js', request.content);
-            pageContentsAsDocument = request.content
-            sendResponse({ status: "ok" });
-            return;
-        }
-
-        sendResponse({ status: "ko", content: 'unknown action' });
+        console.log('getting page in popup.js', request.content);
+        pageContentsAsDocument = request.content
+        sendResponse({ status: "ok" });
+        return;
     }
-);
 
+    sendResponse({ status: "ko", content: 'unknown action' });
+}
 
+async function onMessageListener(request, sender, sendResponse) {
+    console.log('onMessageListener popup.js');
 
-chrome.runtime.sendMessage('gbbaglndlallggdicmccpdpbdmhmhdpi', {'action':'hello there test' },
-    response => {
-        console.log('in new send message',response)
-         /* handle the response from background here */
+    let listener = actionToFunctionMap[request.action];
+    if (listener) {
+        listener(request, sender, sendResponse);
+        return
     }
-);
+    sendResponse({ status: "ko", content: 'unknown action' });
+}
+
+async function onMessageExternalListener(request, sender, sendResponse) {
+    console.log('onMessageExternalListener popup.js');
+
+    let listener = actionToFunctionMap[request.action];
+    if (listener) {
+        listener(request, sender, sendResponse);
+        return
+    }
+    sendResponse({ status: "ko", content: 'unknown action' });
+}
+
+
+const actionToFunctionMap = {
+    'getActiveTabDocument': getActiveTabDocumentListener,
+    'sendUpdatePopupContentToPopup': sendUpdatePopupContentToPopupListener,
+};
+
+chrome.runtime.onMessageExternal.addListener(onMessageExternalListener);
+chrome.runtime.onMessage.addListener(onMessageListener);

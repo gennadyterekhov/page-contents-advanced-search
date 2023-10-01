@@ -1,14 +1,18 @@
 async function sendUpdatePopupContentToPopup(content) {
-    console.log('sendUpdatePopupContentToPopup service-worker.js', content);
+    console.log('sendUpdatePopupContentToPopup service-worker.js', content);// success
 
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     console.log('tab', tab);
 
-    const response = await chrome.tabs.sendMessage(tab.id, { action: "sendUpdatePopupContentToPopup", content: content });
-    const responseRuntime = await chrome.runtime.sendMessage( { action: "sendUpdatePopupContentToPopup", content: content });
+    id = 'jkjmcafbjdffeihegnhpkbfafgpkikia'
+    // const response = await chrome.tabs.sendMessage(tab.id, { action: "sendUpdatePopupContentToPopup", content: content });
+    // const responseRuntime = await chrome.runtime.sendMessage( { action: "sendUpdatePopupContentToPopup", content: content });
+    const responseRuntimeWithId = await chrome.runtime.sendMessage(id, { action: "sendUpdatePopupContentToPopup", content: content });
 
-    console.log('response', response);
-    console.log('responseRuntime', responseRuntime);
+    // console.log('response', response);
+    // console.log('responseRuntime', responseRuntime);
+    console.log('responseRuntimeWithId', responseRuntimeWithId);
+    return responseRuntimeWithId;
 }
 
 async function sendGetActiveTabDocumentToContentScript() {
@@ -32,7 +36,7 @@ async function getActiveTabDocumentListener(request, sender, sendResponse) {
     console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
 
     const resultFromContentScript = await sendGetActiveTabDocumentToContentScript();
-    console.log('resultFromContentScript ',resultFromContentScript);
+    console.log('resultFromContentScript ', resultFromContentScript);
     if (resultFromContentScript) {
         const resultFromPopupScript = await sendUpdatePopupContentToPopup(resultFromContentScript.content);
         console.log('resultFromPopupScript', resultFromPopupScript);
@@ -42,7 +46,7 @@ async function getActiveTabDocumentListener(request, sender, sendResponse) {
 
     }
 
-    // sendResponse({ status: "ok", content: resultFromContentScript.content });
+    sendResponse({ status: "ok?", content: ' _ ' });
 }
 
 async function onMessageListener(request, sender, sendResponse) {
@@ -57,7 +61,7 @@ async function onMessageListener(request, sender, sendResponse) {
 }
 
 
-chrome.runtime.onMessageExternal.addListener( (request, sender, sendResponse) => {
+chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
     console.log("Received message from " + sender + ": ", request);
     sendResponse({ status: "ok", received: true });
 });
