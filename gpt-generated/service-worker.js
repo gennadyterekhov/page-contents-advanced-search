@@ -1,28 +1,39 @@
 async function sendUpdatePopupContentToPopup(content) {
     console.log('sendUpdatePopupContentToPopup service-worker.js', content);
-
-    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-    const response = await chrome.tabs.sendMessage(tab.id, { action: "sendUpdatePopupContentToPopup", content: content });
-    console.log(response);
+    id = 'jkjmcafbjdffeihegnhpkbfafgpkikia'
+    const responseRuntimeWithId = await chrome.runtime.sendMessage(id, { action: "sendUpdatePopupContentToPopup", content: content });
+    console.log('responseRuntimeWithId', responseRuntimeWithId);
+    return responseRuntimeWithId;
 }
 
 async function sendGetActiveTabDocumentToContentScript() {
     console.log('sendGetActiveTabDocumentToContentScript service-worker.js');
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-    const response = await chrome.tabs.sendMessage(tab.id, { action: "getActiveTabDocument" });
-    console.log('response', response);
-    return response;
+    console.log('tab', tab);
+    if (tab) {
+        const response = await chrome.tabs.sendMessage(tab.id, { action: "getActiveTabDocument" });
+        console.log('response from content script', response);
+        return response;
+    } else {
+        console.warn('cannot sendMessage, no tab');
+    }
+    return null;
 }
 
 async function getActiveTabDocumentListener(request, sender, sendResponse) {
     console.log('getActiveTabDocumentListener service-worker.js');
-
-    console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
-
     const resultFromContentScript = await sendGetActiveTabDocumentToContentScript();
-    // const resultFromPopupScript = await sendUpdatePopupContentToPopup(resultFromContentScript.content);
+    console.log('resultFromContentScript ', resultFromContentScript);
+    if (resultFromContentScript) {
+        const resultFromPopupScript = await sendUpdatePopupContentToPopup(resultFromContentScript.content);
+        console.log('resultFromPopupScript', resultFromPopupScript);
 
-    sendResponse({ status: "ok", content: resultFromContentScript.content });
+    } else {
+        console.log('NO resultFromContentScript , cannot update popup');
+
+    }
+
+    sendResponse({ status: "ok?", content: ' _ ' });
 }
 
 async function onMessageListener(request, sender, sendResponse) {
@@ -35,6 +46,13 @@ async function onMessageListener(request, sender, sendResponse) {
     }
     sendResponse({ status: "ko", content: 'unknown action' });
 }
+
+
+chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
+    console.log("Received message from " + sender + ": ", request);
+    sendResponse({ status: "ok", received: true });
+});
+
 
 const actionToFunctionMap = {
     'getActiveTabDocument': getActiveTabDocumentListener,
