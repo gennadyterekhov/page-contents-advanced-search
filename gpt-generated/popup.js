@@ -72,34 +72,26 @@ async function handleSearchButtonClick() {
     console.log('handleSearchButtonClick');
     let pageText;
 
-    pageText = await getPageContentsAsDocument();
+    if (pageContentsAsDocument !== null) {
+        continueSearch();
+        return pageContentsAsDocument;
+    }
+
+    await getPageContentsAsDocument();
 }
 
 async function getPageContentsAsDocument() {
     messageDiv.innerHTML = 'loading';
-
-    console.log('getPageContentsAsDocument');
-
-    isLoading = true;
-    if (pageContentsAsDocument !== null) {
-        return pageContentsAsDocument;
-    }
     const response = await chrome.runtime.sendMessage({ action: "getActiveTabDocument" });
-    console.log('response', response);
     if (!response) {
         return null;
     }
-    pageContentsAsDocument = response.content;
-    console.log('pageContentsAsDocument', pageContentsAsDocument);
-
-    isLoading = false;
-    return response;
+    return response.content;
 }
 
 async function onMessageListener(request, sender, sendResponse) {
     if (request.action === 'sendUpdatePopupContentToPopup') {
         return await sendUpdatePopupContentToPopupListener(request, sender, sendResponse)
-
     }
     sendResponse({ status: "ko", content: 'unknown action' });
 }
