@@ -1,5 +1,3 @@
-debugger;
-
 async function sendUpdatePopupContent() {
     console.log('sendUpdatePopupContent content.js', document);
     const response = await chrome.runtime.sendMessage({ action: "updatePopupContent", content: document });

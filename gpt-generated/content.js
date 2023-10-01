@@ -15,7 +15,7 @@ async function onMessageListener(request, sender, sendResponse) {
         console.log('document', document);
 
         // await sendUpdatePopupContent();
-        sendResponse({ status: "ok", content: document });
+        sendResponse({ status: "ok", content: document.body.innerHTML });
         return;
     }
     sendResponse({ status: "ko", content: 'unknown action' });
