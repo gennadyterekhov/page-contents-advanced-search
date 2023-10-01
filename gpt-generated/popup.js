@@ -66,8 +66,6 @@ function getLinksText() {
     return linksText;
 }
 
-
-
 async function handleSearchButtonClick() {
     console.log('handleSearchButtonClick');
     let pageText;
@@ -113,7 +111,14 @@ function continueSearch() {
         resultsDiv.innerHTML = ' что-то не так, не нашел текст на странице';
         return;
     }
-    indices = searcher.searchCaseInsensitive(pageContentsAsDocument, searchText);
-
+    let indices = [];
+    if (caseInsensitiveCheckbox.checked) {
+        indices = searcher.searchCaseInsensitive(pageContentsAsDocument, searchText);
+    } else {
+        indices = searcher.searchCaseSensitive(pageContentsAsDocument, searchText);
+    }
+    if (regexCheckbox.checked) {
+        indices = searcher.searchRegex(pageContentsAsDocument, searchText);
+    }
     presenter.showResults(indices, pageContentsAsDocument);
 }
