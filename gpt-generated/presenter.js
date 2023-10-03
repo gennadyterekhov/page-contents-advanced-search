@@ -13,11 +13,18 @@ class Presenter {
         let resultHtml = '';
         const contextLength = 20;
 
+        const startSpan = '<span style="display:inline;">';
+        const endSpan = '</span>';
+
         for (const index of indices) {
             const startIndex = Math.max(0, index - contextLength);
-            const endIndex = Math.min(index + contextLength, originalText.length);
-            const context = '...' + originalText.substring(startIndex, endIndex) + '...';
-            const highlightedContext = context.replace(new RegExp(searchInput.value, 'g'), '<span class="highlight">$&</span>');
+            const endIndex = Math.min(index + searchInput.value.length + contextLength, originalText.length);
+            const leftContext = '<code>...' + originalText.substring(startIndex, index) + '</code>';
+            const rightContext = '<code>' + originalText.substring(index + searchInput.value.length, endIndex) + '...</code>';
+
+            const highlightedNeedle = `<b>${searchInput.value}</b>`;
+
+            const highlightedContext = startSpan +leftContext + highlightedNeedle + rightContext + endSpan;
             resultHtml += highlightedContext + '<br>';
         }
 
