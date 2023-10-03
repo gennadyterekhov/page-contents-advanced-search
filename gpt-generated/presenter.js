@@ -11,7 +11,7 @@ class Presenter {
 
     getHtmlResults(indices, originalText) {
         let resultHtml = '';
-        const contextLength = 20;
+        const contextLength = 15;
 
         const startSpan = '<span style="display:inline;">';
         const endSpan = '</span>';
