@@ -3,6 +3,10 @@ class Presenter {
         this.resultsDiv = resultsDiv;
     }
 
+    renderResultsOnPage(foundSubstringStartIndices) {
+        console.log('renderResultsOnPage', foundSubstringStartIndices);
+    }
+
     showResults(indices, originalText) {
         const resultsHTML = this.getHtmlResults(indices, originalText);
         this.resultsDiv.innerHTML = resultsHTML;
@@ -24,7 +28,7 @@ class Presenter {
 
             const highlightedNeedle = `<b>${searchInput.value}</b>`;
 
-            const highlightedContext = startSpan +leftContext + highlightedNeedle + rightContext + endSpan;
+            const highlightedContext = startSpan + leftContext + highlightedNeedle + rightContext + endSpan;
             resultHtml += highlightedContext + '<br>';
         }
 

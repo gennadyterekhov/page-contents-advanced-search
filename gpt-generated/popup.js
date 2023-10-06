@@ -1,20 +1,29 @@
 class Popup {
+    constructor(dataStructure, handleSearchButtonClick) {
+        this.dataStructure = dataStructure;
+
+        dataStructure.caseInsensitiveCheckbox.addEventListener('change', this.toggleCaseInsensitive);
+        dataStructure.searchButton.addEventListener('click', handleSearchButtonClick);
+        dataStructure.regexCheckbox.addEventListener('change', this.toggleRegex);
+        chrome.runtime.onMessage.addListener(this.onMessageListener);
+    }
+
     toggleCaseInsensitive() {
-        caseInsensitiveCheckbox.checked = !caseInsensitiveCheckbox.checked;
-        if (caseInsensitiveCheckbox.checked) {
-            regexCheckbox.checked = false;
+        this.dataStructure.caseInsensitiveCheckbox.checked = !caseInsensitiveCheckbox.checked;
+        if (this.dataStructure.caseInsensitiveCheckbox.checked) {
+            this.dataStructure.regexCheckbox.checked = false;
         }
     }
 
     toggleRegex() {
-        regexCheckbox.checked = !regexCheckbox.checked;
-        if (regexCheckbox.checked) {
-            caseInsensitiveCheckbox.checked = false;
+        this.dataStructure.regexCheckbox.checked = !this.dataStructure.regexCheckbox.checked;
+        if (this.dataStructure.regexCheckbox.checked) {
+            this.dataStructure.caseInsensitiveCheckbox.checked = false;
         }
     }
 
     toggleAcrossLinks() {
-        acrossLinksCheckbox.checked = !acrossLinksCheckbox.checked;
+        this.dataStructure.acrossLinksCheckbox.checked = !this.dataStructure.acrossLinksCheckbox.checked;
     }
 
     getAllLinks() {
@@ -44,20 +53,8 @@ class Popup {
         return linksText;
     }
 
-    async handleSearchButtonClick() {
-        console.log('handleSearchButtonClick');
-        let pageText;
-
-        if (pageContentsAsDocument !== null) {
-            continueSearch();
-            return pageContentsAsDocument;
-        }
-
-        await getPageContentsAsDocument();
-    }
-
     async getPageContentsAsDocument() {
-        messageDiv.innerHTML = 'loading';
+        this.dataStructure.messageDiv.innerHTML = 'loading';
         const response = await chrome.runtime.sendMessage({ action: "getActiveTabDocument" });
         if (!response) {
             return null;
@@ -65,66 +62,22 @@ class Popup {
         return response.content;
     }
 
+    // @deprecated
     async onMessageListener(request, sender, sendResponse) {
         if (request.action === 'sendUpdatePopupContentToPopup') {
             return await sendUpdatePopupContentToPopupListener(request, sender, sendResponse)
         }
         sendResponse({ status: "ko", content: 'unknown action' });
     }
-
+    // @deprecated
     sendUpdatePopupContentToPopupListener(request, sender, sendResponse) {
         console.log('sendUpdatePopupContentToPopupListener popup.js', request);
 
-        pageContentsAsDocument = request.content;
-        messageDiv.innerHTML = '';
+        this.dataStructure.pageContentsAsDocument = request.content;
+        this.dataStructure.messageDiv.innerHTML = '';
         sendResponse({ status: "ok", content: 'got doc text' });
 
-        continueSearch();
-    }
-
-    continueSearch() {
-        const searchText = searchInput.value;
-
-        if (!pageContentsAsDocument) {
-            resultsDiv.innerHTML = ' что-то не так, не нашел текст на странице';
-            return;
-        }
-        let indices = [];
-        if (caseInsensitiveCheckbox.checked) {
-            indices = searcher.searchCaseInsensitive(pageContentsAsDocument, searchText);
-        } else {
-            indices = searcher.searchCaseSensitive(pageContentsAsDocument, searchText);
-        }
-        if (regexCheckbox.checked) {
-            indices = searcher.searchRegex(pageContentsAsDocument, searchText);
-        }
-        presenter.showResults(indices, pageContentsAsDocument);
-    }
-
-
-    main() {
-        // Глобальные переменные для элементов из HTML
-        const caseInsensitiveCheckbox = document.getElementById('case-insensitive-checkbox');
-        const regexCheckbox = document.getElementById('treat-as-regex-checkbox');
-        const acrossLinksCheckbox = document.getElementById('across-links-only-checkbox');
-        const searchInput = document.getElementById('search-query-input');
-        const searchButton = document.getElementById('search-button');
-        const resultsDiv = document.getElementById('search-results');
-        const messageDiv = document.getElementById('message');
-        let linksText = '';
-        let pageContentsAsDocument = null;
-        let linksExist = true;
-
-        let isLoading = false;
-
-        const searcher = new Searcher();
-        const presenter = new Presenter(resultsDiv);
-
-        searchButton.addEventListener('click', this.handleSearchButtonClick);
-        chrome.runtime.onMessage.addListener(this.onMessageListener);
-        caseInsensitiveCheckbox.addEventListener('change', this.toggleCaseInsensitive);
-        regexCheckbox.addEventListener('change', this.toggleRegex);
-        searchButton.addEventListener('click', this.handleSearchButtonClick);
+        // continueSearch();
     }
 }
 
