@@ -1,5 +1,21 @@
 class Searcher {
 
+    startSearch(searchText, pageContentsAsDocument) {
+        if (!pageContentsAsDocument) {
+            return [];
+        }
+        let indices = [];
+        if (caseInsensitiveCheckbox.checked) {
+            indices = this.searchCaseInsensitive(pageContentsAsDocument, searchText);
+        } else {
+            indices = this.searchCaseSensitive(pageContentsAsDocument, searchText);
+        }
+        if (regexCheckbox.checked) {
+            indices = this.searchRegex(pageContentsAsDocument, searchText);
+        }
+        return indices;
+    }
+
     searchCaseInsensitive(haystack, needle) {
         const lowerHaystack = haystack.toLowerCase();
         const lowerNeedle = needle.toLowerCase();
