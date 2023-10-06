@@ -1,124 +1,133 @@
-// Глобальные переменные для элементов из HTML
-const caseInsensitiveCheckbox = document.getElementById('case-insensitive-checkbox');
-const regexCheckbox = document.getElementById('treat-as-regex-checkbox');
-const acrossLinksCheckbox = document.getElementById('across-links-only-checkbox');
-const searchInput = document.getElementById('search-query-input');
-const searchButton = document.getElementById('search-button');
-const resultsDiv = document.getElementById('search-results');
-const messageDiv = document.getElementById('message');
-let linksText = '';
-let pageContentsAsDocument = null;
-let linksExist = true;
-
-let isLoading = false;
-
-const searcher = new Searcher();
-const presenter = new Presenter(resultsDiv);
-
-searchButton.addEventListener('click', handleSearchButtonClick);
-chrome.runtime.onMessage.addListener(onMessageListener);
-caseInsensitiveCheckbox.addEventListener('change', toggleCaseInsensitive);
-regexCheckbox.addEventListener('change', toggleRegex);
-searchButton.addEventListener('click', handleSearchButtonClick);
-
-function toggleCaseInsensitive() {
-    caseInsensitiveCheckbox.checked = !caseInsensitiveCheckbox.checked;
-    if (caseInsensitiveCheckbox.checked) {
-        regexCheckbox.checked = false;
+class Popup {
+    toggleCaseInsensitive() {
+        caseInsensitiveCheckbox.checked = !caseInsensitiveCheckbox.checked;
+        if (caseInsensitiveCheckbox.checked) {
+            regexCheckbox.checked = false;
+        }
     }
-}
 
-function toggleRegex() {
-    regexCheckbox.checked = !regexCheckbox.checked;
-    if (regexCheckbox.checked) {
-        caseInsensitiveCheckbox.checked = false;
+    toggleRegex() {
+        regexCheckbox.checked = !regexCheckbox.checked;
+        if (regexCheckbox.checked) {
+            caseInsensitiveCheckbox.checked = false;
+        }
     }
-}
 
-function toggleAcrossLinks() {
-    acrossLinksCheckbox.checked = !acrossLinksCheckbox.checked;
-}
+    toggleAcrossLinks() {
+        acrossLinksCheckbox.checked = !acrossLinksCheckbox.checked;
+    }
 
-function getAllLinks() {
-    const links = document.getElementsByTagName('a');
-    const linkArray = Array.from(links);
-    return linkArray.map(link => link.href);
-}
+    getAllLinks() {
+        const links = document.getElementsByTagName('a');
+        const linkArray = Array.from(links);
+        return linkArray.map(link => link.href);
+    }
 
-// Функция получения текста всех ссылок
-function getLinksText() {
-    if (linksText) {
+    // Функция получения текста всех ссылок
+    getLinksText() {
+        if (linksText) {
+            return linksText;
+        }
+        if (!linksExist) {
+            return '';
+        }
+
+        const links = getAllLinks();
+        if (links.length > 0) {
+            linksExist = true;
+        } else {
+            linksExist = false;
+            return '';
+        }
+
+        linksText = links.join('\n');
         return linksText;
     }
-    if (!linksExist) {
-        return '';
+
+    async handleSearchButtonClick() {
+        console.log('handleSearchButtonClick');
+        let pageText;
+
+        if (pageContentsAsDocument !== null) {
+            continueSearch();
+            return pageContentsAsDocument;
+        }
+
+        await getPageContentsAsDocument();
     }
 
-    const links = getAllLinks();
-    if (links.length > 0) {
-        linksExist = true;
-    } else {
-        linksExist = false;
-        return '';
+    async getPageContentsAsDocument() {
+        messageDiv.innerHTML = 'loading';
+        const response = await chrome.runtime.sendMessage({ action: "getActiveTabDocument" });
+        if (!response) {
+            return null;
+        }
+        return response.content;
     }
 
-    linksText = links.join('\n');
-    return linksText;
-}
+    async onMessageListener(request, sender, sendResponse) {
+        if (request.action === 'sendUpdatePopupContentToPopup') {
+            return await sendUpdatePopupContentToPopupListener(request, sender, sendResponse)
+        }
+        sendResponse({ status: "ko", content: 'unknown action' });
+    }
 
-async function handleSearchButtonClick() {
-    console.log('handleSearchButtonClick');
-    let pageText;
+    sendUpdatePopupContentToPopupListener(request, sender, sendResponse) {
+        console.log('sendUpdatePopupContentToPopupListener popup.js', request);
 
-    if (pageContentsAsDocument !== null) {
+        pageContentsAsDocument = request.content;
+        messageDiv.innerHTML = '';
+        sendResponse({ status: "ok", content: 'got doc text' });
+
         continueSearch();
-        return pageContentsAsDocument;
     }
 
-    await getPageContentsAsDocument();
+    continueSearch() {
+        const searchText = searchInput.value;
+
+        if (!pageContentsAsDocument) {
+            resultsDiv.innerHTML = ' что-то не так, не нашел текст на странице';
+            return;
+        }
+        let indices = [];
+        if (caseInsensitiveCheckbox.checked) {
+            indices = searcher.searchCaseInsensitive(pageContentsAsDocument, searchText);
+        } else {
+            indices = searcher.searchCaseSensitive(pageContentsAsDocument, searchText);
+        }
+        if (regexCheckbox.checked) {
+            indices = searcher.searchRegex(pageContentsAsDocument, searchText);
+        }
+        presenter.showResults(indices, pageContentsAsDocument);
+    }
+
+
+    main() {
+        // Глобальные переменные для элементов из HTML
+        const caseInsensitiveCheckbox = document.getElementById('case-insensitive-checkbox');
+        const regexCheckbox = document.getElementById('treat-as-regex-checkbox');
+        const acrossLinksCheckbox = document.getElementById('across-links-only-checkbox');
+        const searchInput = document.getElementById('search-query-input');
+        const searchButton = document.getElementById('search-button');
+        const resultsDiv = document.getElementById('search-results');
+        const messageDiv = document.getElementById('message');
+        let linksText = '';
+        let pageContentsAsDocument = null;
+        let linksExist = true;
+
+        let isLoading = false;
+
+        const searcher = new Searcher();
+        const presenter = new Presenter(resultsDiv);
+
+        searchButton.addEventListener('click', this.handleSearchButtonClick);
+        chrome.runtime.onMessage.addListener(this.onMessageListener);
+        caseInsensitiveCheckbox.addEventListener('change', this.toggleCaseInsensitive);
+        regexCheckbox.addEventListener('change', this.toggleRegex);
+        searchButton.addEventListener('click', this.handleSearchButtonClick);
+    }
 }
 
-async function getPageContentsAsDocument() {
-    messageDiv.innerHTML = 'loading';
-    const response = await chrome.runtime.sendMessage({ action: "getActiveTabDocument" });
-    if (!response) {
-        return null;
-    }
-    return response.content;
-}
 
-async function onMessageListener(request, sender, sendResponse) {
-    if (request.action === 'sendUpdatePopupContentToPopup') {
-        return await sendUpdatePopupContentToPopupListener(request, sender, sendResponse)
-    }
-    sendResponse({ status: "ko", content: 'unknown action' });
-}
 
-function sendUpdatePopupContentToPopupListener(request, sender, sendResponse) {
-    console.log('sendUpdatePopupContentToPopupListener popup.js', request);
 
-    pageContentsAsDocument = request.content;
-    messageDiv.innerHTML = '';
-    sendResponse({ status: "ok", content: 'got doc text' });
-
-    continueSearch();
-}
-
-function continueSearch() {
-    const searchText = searchInput.value;
-
-    if (!pageContentsAsDocument) {
-        resultsDiv.innerHTML = ' что-то не так, не нашел текст на странице';
-        return;
-    }
-    let indices = [];
-    if (caseInsensitiveCheckbox.checked) {
-        indices = searcher.searchCaseInsensitive(pageContentsAsDocument, searchText);
-    } else {
-        indices = searcher.searchCaseSensitive(pageContentsAsDocument, searchText);
-    }
-    if (regexCheckbox.checked) {
-        indices = searcher.searchRegex(pageContentsAsDocument, searchText);
-    }
-    presenter.showResults(indices, pageContentsAsDocument);
-}
