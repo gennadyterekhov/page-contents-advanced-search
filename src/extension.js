@@ -1,10 +1,19 @@
+import * as dataStructure from './data-structure.js';
+import * as messageSender from './message-sender.js';
+import * as popup from './popup.js';
+import * as presenter from './presenter.js';
+import * as searcher from './searcher.js';
+
+
+
+
 export class Extension {
     constructor() {
-        this.dataStructure = new DataStructure(document);
-        this.messageSender = new MessageSender(this.dataStructure);
-        this.popup = new Popup(this.dataStructure, this.getOnClickHander(this));
-        this.searcher = new Searcher();
-        this.presenter = new Presenter(this.dataStructure.resultsDiv);
+        this.dataStructure = new dataStructure.DataStructure(document);
+        this.messageSender = new messageSender.MessageSender(this.dataStructure);
+        this.popup = new popup.Popup(this.dataStructure, this.getOnClickHander(this));
+        this.searcher = new searcher.Searcher();
+        this.presenter = new presenter.Presenter(this.dataStructure.resultsDiv);
     }
 
     startApp() {
@@ -21,7 +30,10 @@ export class Extension {
                 ext.dataStructure.pageContentsAsDocument
             );
 
-            ext.presenter.renderResultsOnPage(ext.dataStructure.foundSubstringStartIndices);
+            ext.presenter.renderResultsOnPage(
+                ext.dataStructure.foundSubstringStartIndices, 
+                ext.dataStructure.pageContentsAsDocument
+                );
         };
     }
 }

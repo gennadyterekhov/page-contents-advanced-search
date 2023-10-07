@@ -1,4 +1,4 @@
-class Searcher {
+export class Searcher {
 
     startSearch(searchText, pageContentsAsDocument) {
         if (!pageContentsAsDocument) {

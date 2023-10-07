@@ -1,10 +1,11 @@
-class Presenter {
+export class Presenter {
     constructor(resultsDiv) {
         this.resultsDiv = resultsDiv;
     }
 
-    renderResultsOnPage(foundSubstringStartIndices) {
+    renderResultsOnPage(foundSubstringStartIndices, pageContentsAsDocument) {
         console.log('renderResultsOnPage', foundSubstringStartIndices);
+        this.showResults(foundSubstringStartIndices, pageContentsAsDocument)
     }
 
     showResults(indices, originalText) {

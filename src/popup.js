@@ -1,4 +1,4 @@
-class Popup {
+export class Popup {
     constructor(dataStructure, handleSearchButtonClick) {
         this.dataStructure = dataStructure;
 

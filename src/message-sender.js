@@ -1,4 +1,4 @@
-class MessageSender {
+export class MessageSender {
     constructor(dataStructure) {
         this.dataStructure = dataStructure;
 
