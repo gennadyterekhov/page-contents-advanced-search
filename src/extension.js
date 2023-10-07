@@ -1,4 +1,4 @@
-class Extension {
+export class Extension {
     constructor() {
         this.dataStructure = new DataStructure(document);
         this.messageSender = new MessageSender(this.dataStructure);
@@ -26,5 +26,3 @@ class Extension {
     }
 }
 
-let ext = new Extension();
-ext.startApp();
