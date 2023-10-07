@@ -5,7 +5,7 @@
     "version": "1.0",
     "action": {
         "default_popup": "index.html",
-        "default_icon": "icon.svg.png",
+        "default_icon": "img/icon.svg.png",
         "default_title": "page contents advanced search"
     },
     "permissions": [
@@ -18,12 +18,12 @@
                 "*://*/*"
             ],
             "js": [
-                "content.js"
+                "../src/content.js"
             ]
         }
     ],
     "background": {
-        "service_worker": "service-worker.js"
+        "service_worker": "../src/service-worker.js"
     },
     "externally_connectable": {
         "matches": ["*://*/*"]
