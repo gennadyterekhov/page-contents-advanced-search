@@ -1,7 +1,7 @@
 class Extension {
     constructor() {
         this.dataStructure = new DataStructure(document);
-        this.popup = new Popup(this.dataStructure, this.handleSearchButtonClick);
+        this.popup = new Popup(this.dataStructure, this.getOnClickHander(this));
         this.searcher = new Searcher();
         this.presenter = new Presenter(this.dataStructure.resultsDiv);
     }
@@ -10,16 +10,18 @@ class Extension {
         console.log('app started');
     }
 
-    async handleSearchButtonClick() {
-        if (!this.dataStructure.pageContentsAsDocument) {
-            this.dataStructure.pageContentsAsDocument = await this.popup.getPageContentsAsDocument();
-        }
-        this.dataStructure.foundSubstringStartIndices = this.searcher.startSearch(
-            this.dataStructure.searchInput.value,
-            this.dataStructure.pageContentsAsDocument
-        );
+    getOnClickHander(ext) {
+        return async function () {
+            if (!ext.dataStructure.pageContentsAsDocument) {
+                ext.dataStructure.pageContentsAsDocument = await ext.popup.getPageContentsAsDocument();
+            }
+            ext.dataStructure.foundSubstringStartIndices = ext.searcher.startSearch(
+                ext.dataStructure.searchInput.value,
+                ext.dataStructure.pageContentsAsDocument
+            );
 
-        this.presenter.renderResultsOnPage(this.dataStructure.foundSubstringStartIndices);
+            ext.presenter.renderResultsOnPage(ext.dataStructure.foundSubstringStartIndices);
+        };
     }
 }
 
