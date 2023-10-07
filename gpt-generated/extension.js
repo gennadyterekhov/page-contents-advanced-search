@@ -1,6 +1,7 @@
 class Extension {
     constructor() {
         this.dataStructure = new DataStructure(document);
+        this.messageSender = new MessageSender(this.dataStructure);
         this.popup = new Popup(this.dataStructure, this.getOnClickHander(this));
         this.searcher = new Searcher();
         this.presenter = new Presenter(this.dataStructure.resultsDiv);
@@ -13,7 +14,7 @@ class Extension {
     getOnClickHander(ext) {
         return async function () {
             if (!ext.dataStructure.pageContentsAsDocument) {
-                ext.dataStructure.pageContentsAsDocument = await ext.popup.getPageContentsAsDocument();
+                ext.dataStructure.pageContentsAsDocument = await ext.messageSender.getPageContentsAsDocument();
             }
             ext.dataStructure.foundSubstringStartIndices = ext.searcher.startSearch(
                 ext.dataStructure.searchInput.value,
