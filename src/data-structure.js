@@ -1,4 +1,4 @@
-class DataStructure {
+export class DataStructure {
     constructor(document) {
         this.caseInsensitiveCheckbox = document.getElementById('case-insensitive-checkbox');
         this.regexCheckbox = document.getElementById('treat-as-regex-checkbox');
