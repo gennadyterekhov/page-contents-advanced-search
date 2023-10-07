@@ -27,10 +27,5 @@ export class MessageSender {
         this.dataStructure.pageContentsAsDocument = request.content;
         this.dataStructure.messageDiv.innerHTML = '';
         sendResponse({ status: "ok", content: 'got doc text' });
-
     }
 }
-
-
-
-
